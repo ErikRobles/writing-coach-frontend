@@ -6,6 +6,7 @@ import ChatView from './components/ChatView';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import AdminArea from './components/AdminArea';
+import LandingPage from './components/LandingPage';
 import { AuthProvider, useAuth } from './AuthContext';
 
 function ProtectedRoute({ children, reqRole }: { children: React.ReactNode, reqRole?: string }) {
@@ -29,7 +30,7 @@ function MainLayout() {
           <div className="flex items-center justify-between px-6 h-16 w-full">
             <div className="flex items-center gap-4">
               <span className="material-symbols-outlined text-[#00FFC8]">menu</span>
-              <h1 className="font-space font-black tracking-tighter text-xl text-[#00FFC8]">Scribe.AI</h1>
+              <h1 className="font-space font-black tracking-tighter text-xl text-[#00FFC8]">WritingCoach.AI</h1>
             </div>
           </div>
         </header>
@@ -59,6 +60,7 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="*" element={<MainLayout />} />
         </Routes>

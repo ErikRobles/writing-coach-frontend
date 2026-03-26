@@ -1,7 +1,9 @@
+const API_BASE_URL = (import.meta as any).env.VITE_API_URL || "http://localhost:8080";
+
 export async function analyzeText(text: string, onChunk: (chunk: string) => void) {
   try {
     // FastAPI expects the parameter as a query param based on the provided boilerplate.
-    const url = new URL('http://localhost:8080/analyze');
+    const url = new URL(`${API_BASE_URL}/analyze`);
     url.searchParams.append('text', text);
 
     const token = localStorage.getItem('token');
@@ -26,10 +28,10 @@ export async function analyzeText(text: string, onChunk: (chunk: string) => void
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
-      
+
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
-      buffer = lines.pop();
+      buffer = lines.pop() ?? '';
 
       for (const line of lines) {
         if (line.startsWith('data: ')) {

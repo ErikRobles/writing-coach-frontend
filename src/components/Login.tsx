@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { PenTool } from 'lucide-react';
 
+const API_BASE_URL = (import.meta as any).env.VITE_API_URL || "http://localhost:8080";
+
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -15,12 +17,11 @@ export default function Login() {
     e.preventDefault();
     setError('');
 
-    const url = isLogin ? 'http://localhost:8080/login' : 'http://localhost:8080/signup';
-    
+    const url = isLogin ? `${API_BASE_URL}/login` : `${API_BASE_URL}/signup`;
     try {
       let body;
       let headers = {};
-      
+
       if (isLogin) {
         // OAuth2PasswordRequestForm requires form data
         const formData = new URLSearchParams();
@@ -48,13 +49,13 @@ export default function Login() {
       const currentEmail = email.toLowerCase();
       const role = currentEmail === 'erikjames69@hotmail.com' ? 'admin' : 'user';
       login(data.access_token, role);
-      
+
       if (role === 'admin') {
         navigate('/admin');
       } else {
         navigate('/chat');
       }
-      
+
     } catch (err: any) {
       setError(err.message);
     }
@@ -67,32 +68,32 @@ export default function Login() {
           <div className="w-16 h-16 rounded-2xl bg-surface-variant flex items-center justify-center -rotate-3 hover:rotate-0 transition-transform cursor-pointer border border-primary/20">
             <PenTool className="text-primary w-8 h-8" />
           </div>
-          <h1 className="text-3xl font-space-grotesk font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-primary to-emerald-400">
-            {isLogin ? 'Access Scribe' : 'Join Scribe'}
+          <h1 className="text-3xl font-space font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-primary to-emerald-400">
+            {isLogin ? 'Log In' : 'Sign Up'}
           </h1>
           <p className="font-inter text-sm text-on-surface-variant max-w-[280px] text-center">
-            The Cyber-Modern digital atelier. Elevate your narrative arc and refine technical precision.
+            Welcome to WritingTutor. Improve your writing easily and confidently with your friendly AI tutor.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col space-y-4 bg-surface/40 p-6 rounded-3xl border border-on-surface/5 backdrop-blur-xl shadow-2xl">
           {error && <div className="text-red-400 text-sm font-inter bg-red-400/10 p-3 rounded-xl border border-red-400/20">{error}</div>}
-          
+
           <div className="flex flex-col space-y-1">
             <label className="text-xs font-inter font-medium text-on-surface-variant uppercase tracking-wider ml-1">Email Address</label>
-            <input 
+            <input
               required
               type="email"
               className="bg-background/80 border border-on-surface/10 rounded-2xl px-4 py-3 text-on-surface font-inter focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/50"
-              placeholder="admin@scribe.ai"
+              placeholder="admin@writingtutor.website"
               value={email}
               onChange={e => setEmail(e.target.value)}
             />
           </div>
-          
+
           <div className="flex flex-col space-y-1">
-            <label className="text-xs font-inter font-medium text-on-surface-variant uppercase tracking-wider ml-1">Secure Passkey</label>
-            <input 
+            <label className="text-xs font-inter font-medium text-on-surface-variant uppercase tracking-wider ml-1">Password</label>
+            <input
               required
               type="password"
               className="bg-background/80 border border-on-surface/10 rounded-2xl px-4 py-3 text-on-surface font-inter focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/50"
@@ -102,18 +103,18 @@ export default function Login() {
             />
           </div>
 
-          <button type="submit" className="mt-4 bg-primary text-background font-space-grotesk font-bold py-3.5 rounded-2xl hover:bg-emerald-400 transition-colors shadow-[0_0_20px_rgba(0,253,198,0.2)]">
-            {isLogin ? 'Initialize Uplink' : 'Register Identity'}
+          <button type="submit" className="mt-4 bg-primary text-background font-space font-bold py-3.5 rounded-2xl hover:bg-emerald-400 transition-colors shadow-[0_0_20px_rgba(0,253,198,0.2)]">
+            {isLogin ? 'Log in' : 'Create Account'}
           </button>
         </form>
 
         <p className="mt-8 text-center text-sm font-inter text-on-surface-variant">
-          {isLogin ? 'No active dossier? ' : 'Returning author? '}
-          <button 
-            onClick={() => setIsLogin(!isLogin)} 
+          {isLogin ? 'Need an account? ' : 'Already have an account? '}
+          <button
+            onClick={() => setIsLogin(!isLogin)}
             className="text-primary hover:text-emerald-300 transition-colors font-medium border-b border-primary/30 pb-0.5"
           >
-            {isLogin ? 'Request Access' : 'Login Here'}
+            {isLogin ? 'Sign up here' : 'Log in here'}
           </button>
         </p>
       </div>

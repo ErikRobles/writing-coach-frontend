@@ -6,7 +6,7 @@ export default function ChatView() {
   const [messages, setMessages] = useState<{role: 'scribe' | 'user', content: string}[]>([
     {
       role: 'scribe',
-      content: 'Greetings. I am Scribe, your digital atelier. I can analyze your drafts to elevate your narrative arc and refine technical precision. Paste or type your draft below.'
+      content: "Hi! I'm WritingCoach.AI, your friendly writing coach. I can help you fix grammar and suggest improvements. Just paste or type your draft below."
     }
   ]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -43,10 +43,10 @@ export default function ChatView() {
     } catch (e: any) {
       setMessages(prev => {
         const errorString = String(e?.message || e);
-        let fallbackMessage = 'An error occurred connecting to the neural network. (Check if backend is running with valid key)';
+        let fallbackMessage = 'Oops! We had trouble connecting to the server. Please check your connection.';
         
         if (errorString.toLowerCase().includes('rate limit') || errorString.includes('429')) {
-          fallbackMessage = 'Your tokens are exhausted. Please try again in a few minutes.';
+          fallbackMessage = "You've run out of tokens for now. Please try again later or upgrade your plan.";
         }
 
         const newMsg = [...prev];
@@ -72,7 +72,7 @@ export default function ChatView() {
               <div className="flex items-center gap-3 ml-2">
                 <div className={`w-2 h-2 rounded-full bg-primary ${idx === messages.length - 1 && isAnalyzing ? 'animate-pulse' : ''}`}></div>
                 <span className="font-space font-bold text-primary tracking-wider text-xs uppercase">
-                  {idx === 0 ? 'Scribe' : 'Scribe Suggestion'}
+                  {idx === 0 ? 'WritingCoach.AI' : 'WritingCoach.AI Suggestion'}
                 </span>
               </div>
               <div className="bg-surface-container p-6 rounded-xl border-l-2 border-primary/30 shadow-xl">
@@ -83,7 +83,7 @@ export default function ChatView() {
                     </div>
                     {idx > 0 && !isAnalyzing && (
                       <div className="mt-8 pt-6 border-t border-outline-variant/20 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-                        <p className="font-space text-xs text-on-surface-variant italic">Load this feedback into your draft to continue editing.</p>
+                        <p className="font-space text-xs text-on-surface-variant italic">Click below to update your draft with these suggestions.</p>
                         <button 
                           onClick={() => {
                             setInputText(msg.content);
@@ -132,7 +132,7 @@ export default function ChatView() {
             </button>
             <textarea
               className="flex-grow bg-transparent border-none focus:ring-0 text-on-surface font-newsreader text-lg px-2 placeholder:text-on-surface-variant resize-none outline-none h-14 py-3"
-              placeholder="Type your narrative or paste a draft..."
+              placeholder="Type or paste your text here..."
               value={inputText}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInputText(e.target.value)}
               onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
