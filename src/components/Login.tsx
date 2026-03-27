@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { PenTool } from 'lucide-react';
 
-const API_BASE_URL = (import.meta as any).env.VITE_API_URL || "http://localhost:8080";
+const API_BASE_URL = (import.meta as any).env.VITE_API_URL || "http://127.0.0.1:8080";
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
@@ -48,7 +48,7 @@ export default function Login() {
 
       const currentEmail = email.toLowerCase();
       const role = currentEmail === 'erikjames69@hotmail.com' ? 'admin' : 'user';
-      login(data.access_token, role);
+      login(data.access_token, role, currentEmail);
 
       if (role === 'admin') {
         navigate('/admin');

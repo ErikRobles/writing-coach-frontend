@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../AuthContext';
 import { ShieldAlert, Users, TrendingUp } from 'lucide-react';
 
-const API_BASE_URL = (import.meta as any).env.VITE_API_URL || "http://localhost:8080";
+const API_BASE_URL = (import.meta as any).env.VITE_API_URL || "http://127.0.0.1:8080";
 
 export default function AdminArea() {
   const { token, role } = useAuth();
