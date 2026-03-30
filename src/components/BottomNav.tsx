@@ -8,7 +8,7 @@ export default function BottomNav() {
   const { logout, role } = useAuth();
   
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-safe bg-[#131316]/80 backdrop-blur-2xl border-t border-[#a9ffdf]/5 rounded-t-lg shadow-2xl">
+    <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-[#131316]/80 backdrop-blur-xl border-t border-[#a9ffdf]/5 rounded-t-lg shadow-2xl">
       <div onClick={() => navigate('/chat')} className={`flex flex-col cursor-pointer items-center justify-center transition-all ${location.pathname === '/chat' ? 'text-[#00FFC8] bg-[#19191c] rounded-md px-4 py-1' : 'text-on-surface-variant hover:text-[#00FFC8]'}`}>
         <span className="material-symbols-outlined">auto_awesome</span>
         <span className="font-inter text-[10px] uppercase tracking-widest mt-1">Coach</span>

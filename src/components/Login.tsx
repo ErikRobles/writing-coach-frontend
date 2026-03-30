@@ -62,7 +62,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-on-surface">
+    <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center p-6 text-on-surface">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center space-y-4 mb-10">
           <div className="w-16 h-16 rounded-2xl bg-surface-variant flex items-center justify-center -rotate-3 hover:rotate-0 transition-transform cursor-pointer border border-primary/20">
@@ -83,8 +83,11 @@ export default function Login() {
             <label className="text-xs font-inter font-medium text-on-surface-variant uppercase tracking-wider ml-1">Email Address</label>
             <input
               required
-              type="email"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck="false"
               className="bg-background/80 border border-on-surface/10 rounded-2xl px-4 py-3 text-on-surface font-inter focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/50"
+
               placeholder="admin@writingtutor.website"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -95,8 +98,11 @@ export default function Login() {
             <label className="text-xs font-inter font-medium text-on-surface-variant uppercase tracking-wider ml-1">Password</label>
             <input
               required
-              type="password"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck="false"
               className="bg-background/80 border border-on-surface/10 rounded-2xl px-4 py-3 text-on-surface font-inter focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/50"
+
               placeholder="••••••••"
               value={password}
               onChange={e => setPassword(e.target.value)}

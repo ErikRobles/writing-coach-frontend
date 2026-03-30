@@ -10,7 +10,7 @@ export default function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 bg-[#0e0e10]/80 backdrop-blur-xl border-r border-[#a9ffdf]/10 p-6 z-40">
       <div className="flex items-center gap-4 mb-12">
-        <h1 className="font-space font-black tracking-tighter text-2xl text-[#00FFC8]">WritingTutor</h1>
+        <h1 className="font-space font-black tracking-tighter text-2xl text-[#00FFC8]">WritingCoach</h1>
       </div>
 
       <nav className="flex flex-col gap-6 flex-1 overflow-y-auto hide-scrollbar pb-6">

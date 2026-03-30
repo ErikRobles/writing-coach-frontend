@@ -24,21 +24,24 @@ export default function Dashboard() {
   const [emailStatus, setEmailStatus] = useState<{message: string, isError: boolean} | null>(null);
 
   useEffect(() => {
+    if (!token) return;
+
     fetch(`${API_BASE_URL}/user/me/stats`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => r.json())
-      .then(data => setStats(data));
+      .then(data => setStats(data))
+      .catch(() => setStats(null));
 
     fetch(`${API_BASE_URL}/user/me/history`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => r.json())
-      .then(data => setHistory(data))
+      .then(data => setHistory(Array.isArray(data) ? data : []))
       .catch(() => setHistory([]));
 
     getPracticeHistory()
-      .then(data => setPracticeHistory(data))
+      .then(data => setPracticeHistory(Array.isArray(data) ? data : []))
       .catch(() => setPracticeHistory([]));
   }, [token]);
 
@@ -64,11 +67,11 @@ export default function Dashboard() {
     }
   };
 
-  const chartData = practiceHistory.map(h => ({
-    date: new Date(h.timestamp).toLocaleDateString(),
-    spelling: h.scores.spelling,
-    grammar: h.scores.grammar,
-    style: h.scores.style
+  const chartData = (Array.isArray(practiceHistory) ? practiceHistory : []).map(h => ({
+    date: h.timestamp ? new Date(h.timestamp).toLocaleDateString() : 'N/A',
+    spelling: h.scores?.spelling ?? 0,
+    grammar: h.scores?.grammar ?? 0,
+    style: h.scores?.style ?? 0
   }));
 
   if (!stats) return <div className="p-8 text-on-surface flex items-center justify-center h-full">Loading your stats...</div>;
@@ -135,12 +138,12 @@ export default function Dashboard() {
             <h3 className="font-space font-bold uppercase tracking-wider text-sm">Member Since</h3>
           </div>
           <p className="text-2xl font-space break-all pt-2 text-on-surface/80">
-            {new Date(stats.created_at).toLocaleDateString()}
+            {stats.created_at ? new Date(stats.created_at).toLocaleDateString() : 'N/A'}
           </p>
         </div>
       </section>
 
-      {practiceHistory.length > 0 && (
+      {Array.isArray(practiceHistory) && practiceHistory.length > 0 && (
         <section className="space-y-6">
           <h2 className="text-xl font-space font-bold flex items-center gap-3">
             <TrendingUp className="w-5 h-5 text-tertiary" /> 
@@ -212,13 +215,18 @@ export default function Dashboard() {
       <section className="space-y-6">
         <h2 className="text-xl font-space font-bold flex items-center"><FileText className="w-5 h-5 mr-3 text-primary" /> Recent Writing History</h2>
         <div className="grid grid-cols-1 gap-4">
-          {history.length === 0 ? (
+          {!Array.isArray(history) || history.length === 0 ? (
             <div className="p-8 text-center text-on-surface-variant border border-on-surface/5 rounded-2xl border-dashed">No recent history found. Start writing to see your history here.</div>
           ) : (
             history.map((doc, i) => (
               <div key={i} className="bg-surface/10 border border-on-surface/5 rounded-2xl p-5 space-y-3">
-                <span className="text-xs text-primary/70 font-inter">{new Date(doc.timestamp).toLocaleString()}</span>
-                <p className="font-newsreader line-clamp-2 text-on-surface/80">"{doc.user_draft}"</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-primary/70 font-inter">{doc.timestamp ? new Date(doc.timestamp).toLocaleString() : 'N/A'}</span>
+                  <span className={`px-2 py-0.5 rounded-[4px] text-[10px] font-space font-bold uppercase tracking-tighter border ${doc.type === 'practice' ? 'bg-tertiary/10 text-tertiary border-tertiary/20' : 'bg-primary/10 text-primary border-primary/20'}`}>
+                    {doc.type ?? 'analysis'}
+                  </span>
+                </div>
+                <p className="font-newsreader line-clamp-2 text-on-surface/80">"{doc.text_preview}"</p>
               </div>
             ))
           )}
