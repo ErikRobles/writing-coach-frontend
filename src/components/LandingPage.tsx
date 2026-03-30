@@ -14,6 +14,7 @@ import {
   Smartphone,
   Apple
 } from 'lucide-react';
+import '../App.css';
 
 const API_BASE_URL = (import.meta as any).env.VITE_API_URL || "http://127.0.0.1:8080";
 
@@ -85,7 +86,7 @@ export default function LandingPage() {
 
       {/* Background Pattern Layers */}
       <div className="fixed inset-0 z-0 opacity-10 pointer-events-none">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cpath d=\"M30 0l30 30-30 30L0 30z\" fill=\"none\" stroke=\"%2348474a\" stroke-width=\"0.5\"/%3E%3Cpath d=\"M15 15l30 0 0 30-30 0z\" fill=\"none\" stroke=\"%2348474a\" stroke-width=\"0.5\"/%3E%3C/svg%3E')]"></div>
+        <div className="absolute inset-0 aztec-pattern"></div>
         <div className="absolute top-[-10%] right-[-5%] w-[800px] h-[800px] bg-primary/5 blur-[160px] rounded-full"></div>
         <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-tertiary/5 blur-[140px] rounded-full"></div>
       </div>
@@ -104,10 +105,10 @@ export default function LandingPage() {
 
             <div className="space-y-6">
               <h2 className="text-6xl md:text-8xl font-space font-black leading-[0.9] tracking-tighter uppercase">
-                Write with <span className="text-transparent bg-clip-text bg-gradient-to-br from-primary via-primary-container to-tertiary">Absolute</span> Authority.
+                Write English with <span className="text-transparent bg-clip-text bg-gradient-to-br from-primary via-primary-container to-tertiary">Confidence.</span>
               </h2>
               <p className="text-xl md:text-2xl font-newsreader text-on-surface-variant leading-relaxed max-w-lg italic">
-                The digital atelier for modern intellects. Refine your register, master your voice, and track your evolution.
+                Improve your English writing every day. Fix your mistakes, learn new words, and see your progress.
               </p>
             </div>
 
@@ -116,7 +117,7 @@ export default function LandingPage() {
                 onClick={() => { setAuthMode('signup'); setSelectedTier(null); }}
                 className="px-8 py-4 bg-primary text-on-primary-fixed font-space font-bold uppercase tracking-widest text-xs rounded-xl hover:bg-emerald-400 transition-all active:scale-95 shadow-2xl shadow-primary/20"
               >
-                Join the Atelier
+                Start Learning
               </button>
               <button 
                 onClick={() => {
@@ -125,7 +126,7 @@ export default function LandingPage() {
                 }}
                 className="px-8 py-4 bg-surface-container-high text-on-surface-variant font-space font-bold uppercase tracking-widest text-xs rounded-xl hover:text-on-surface border border-outline-variant/20 transition-all active:scale-95"
               >
-                Explore Benefits
+                Learn More
               </button>
             </div>
           </div>
@@ -136,7 +137,7 @@ export default function LandingPage() {
               <div className="flex w-full mb-8 bg-surface-container-lowest/50 rounded-2xl p-1.5 border border-outline-variant/10">
                 {token ? (
                   <div className="flex-1 py-3 text-center text-primary font-space font-black uppercase tracking-widest text-xs">
-                    Authenticated Session Active
+                    You are logged in
                   </div>
                 ) : (
                   <>
@@ -144,41 +145,40 @@ export default function LandingPage() {
                       onClick={() => { setAuthMode('signup'); setSelectedTier(null); setError(''); }}
                       className={`flex-1 py-3 font-space font-black uppercase tracking-widest text-[10px] rounded-xl transition-all ${authMode === 'signup' ? 'bg-primary text-on-primary-fixed shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
                     >
-                      Initialize
+                      Sign Up
                     </button>
                     <button
                       onClick={() => { setAuthMode('login'); setError(''); }}
                       className={`flex-1 py-3 font-space font-black uppercase tracking-widest text-[10px] rounded-xl transition-all ${authMode === 'login' ? 'bg-primary text-on-primary-fixed shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
                     >
-                      Login
+                      Log In
                     </button>
                   </>
                 )}
               </div>
 
-              {/* Form Logic... (Keeping existing logic but updating styles) */}
               {authMode === 'signup' && !selectedTier && !token ? (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                  <h3 className="font-space font-black uppercase tracking-widest text-xs text-on-surface-variant mb-4">Select Tier</h3>
+                  <h3 className="font-space font-black uppercase tracking-widest text-xs text-on-surface-variant mb-4">Select a plan</h3>
                   <button onClick={() => setSelectedTier('free')} className="w-full text-left p-6 rounded-3xl bg-surface-container border border-outline-variant/10 hover:border-primary/40 transition-all group">
                     <div className="flex justify-between items-center mb-2">
-                      <h4 className="font-space font-black text-lg text-on-surface group-hover:text-primary transition-colors uppercase tracking-tight">Free access</h4>
+                      <h4 className="font-space font-black text-lg text-on-surface group-hover:text-primary transition-colors uppercase tracking-tight">Free Plan</h4>
                       <span className="text-xs font-black bg-surface-bright px-3 py-1 rounded-full border border-outline-variant/20">$0</span>
                     </div>
                     <ul className="space-y-3 text-sm text-on-surface-variant font-inter opacity-70">
-                      <li className="flex items-center gap-3"><Zap className="w-4 h-4 text-primary" /> Daily token allocation</li>
-                      <li className="flex items-center gap-3"><MonitorPlay className="w-4 h-4 text-on-surface-variant" /> Ad-supported logic</li>
+                      <li className="flex items-center gap-3"><Zap className="w-4 h-4 text-primary" /> Some help every day</li>
+                      <li className="flex items-center gap-3"><MonitorPlay className="w-4 h-4 text-on-surface-variant" /> Includes ads</li>
                     </ul>
                   </button>
                   <button onClick={() => setSelectedTier('premium')} className="w-full text-left p-6 rounded-3xl bg-surface-container border border-primary/20 hover:border-emerald-400 transition-all group relative overflow-hidden">
                     <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-primary to-emerald-400"></div>
                     <div className="flex justify-between items-center mb-2">
-                      <h4 className="font-space font-black text-lg text-on-surface group-hover:text-emerald-400 transition-colors uppercase tracking-tight">Premium Grade</h4>
+                      <h4 className="font-space font-black text-lg text-on-surface group-hover:text-emerald-400 transition-colors uppercase tracking-tight">Premium Plan</h4>
                       <span className="text-xs font-black bg-primary text-background px-3 py-1 rounded-full">$9.99</span>
                     </div>
                     <ul className="space-y-3 text-sm text-on-surface-variant font-inter">
-                      <li className="flex items-center gap-3"><Zap className="w-4 h-4 text-emerald-400" /> Infinite token stream</li>
-                      <li className="flex items-center gap-3"><MonitorPlay className="w-4 h-4 text-emerald-400" /> Pure environment</li>
+                      <li className="flex items-center gap-3"><Zap className="w-4 h-4 text-emerald-400" /> Unlimited help</li>
+                      <li className="flex items-center gap-3"><MonitorPlay className="w-4 h-4 text-emerald-400" /> No ads</li>
                     </ul>
                   </button>
                 </div>
@@ -187,16 +187,16 @@ export default function LandingPage() {
                   <div className="w-20 h-20 rounded-full bg-emerald-400/10 flex items-center justify-center border border-emerald-400/20">
                     <CheckCircle2 className="w-10 h-10 text-emerald-400" />
                   </div>
-                  <h3 className="font-space font-black uppercase tracking-widest text-sm text-center">Session Verified</h3>
+                  <h3 className="font-space font-black uppercase tracking-widest text-sm text-center">Login Successful</h3>
                   <button onClick={() => navigate('/chat')} className="w-full bg-primary text-on-primary-fixed font-space font-black uppercase tracking-widest text-xs py-5 rounded-2xl hover:bg-emerald-400 transition-all shadow-2xl shadow-primary/20">
-                    Enter Application
+                    Go to Chat
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleAuthSubmit} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-space font-black uppercase tracking-widest text-xs text-on-surface-variant">
-                      {authMode === 'login' ? 'Authentication' : 'Registration'}
+                      {authMode === 'login' ? 'Welcome back' : 'Create account'}
                     </h3>
                     {authMode === 'signup' && (
                       <button type="button" onClick={() => setSelectedTier(null)} className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">
@@ -207,10 +207,10 @@ export default function LandingPage() {
 
                   {authMode === 'signup' && selectedTier === 'premium' && (
                     <div className="p-6 rounded-3xl bg-surface border border-primary/20 space-y-4">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Secure Payment Simulation</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Mock Payment</p>
                       {paymentSuccess ? (
                         <div className="bg-emerald-400/10 text-emerald-400 p-4 rounded-xl flex items-center gap-3 text-xs font-bold border border-emerald-400/20 uppercase tracking-widest">
-                          <CheckCircle2 className="w-5 h-5" /> Verified
+                          <CheckCircle2 className="w-5 h-5" /> Paid
                         </div>
                       ) : (
                         <div className="flex flex-col gap-3">
@@ -229,17 +229,17 @@ export default function LandingPage() {
 
                   <div className="space-y-4">
                     <div className="flex flex-col space-y-2">
-                      <label className="text-[10px] font-space font-black text-on-surface-variant uppercase tracking-[0.2em] ml-1">Identity (Email)</label>
-                      <input required type="email" placeholder="USER@DOMAIN.COM" value={email} onChange={e => setEmail(e.target.value)} className="bg-surface-container border border-outline-variant/20 rounded-2xl px-5 py-4 text-on-surface focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/20 font-space text-sm" />
+                      <label className="text-[10px] font-space font-black text-on-surface-variant uppercase tracking-[0.2em] ml-1">Email</label>
+                      <input required type="email" placeholder="YOU@EMAIL.COM" value={email} onChange={e => setEmail(e.target.value)} className="bg-surface-container border border-outline-variant/20 rounded-2xl px-5 py-4 text-on-surface focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/20 font-space text-sm" />
                     </div>
                     <div className="flex flex-col space-y-2">
-                      <label className="text-[10px] font-space font-black text-on-surface-variant uppercase tracking-[0.2em] ml-1">Keycode (Password)</label>
+                      <label className="text-[10px] font-space font-black text-on-surface-variant uppercase tracking-[0.2em] ml-1">Password</label>
                       <input required type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} className="bg-surface-container border border-outline-variant/20 rounded-2xl px-5 py-4 text-on-surface focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/20 font-space text-sm" />
                     </div>
                   </div>
 
                   <button type="submit" className="w-full bg-primary text-on-primary-fixed font-space font-black uppercase tracking-[0.2em] text-[10px] py-5 rounded-2xl hover:bg-emerald-400 transition-all shadow-2xl shadow-primary/20">
-                    {authMode === 'login' ? 'Confirm Access' : `Finalize - ${selectedTier?.toUpperCase()}`}
+                    {authMode === 'login' ? 'Confirm' : `Finish - ${selectedTier?.toUpperCase()}`}
                   </button>
                 </form>
               )}
@@ -252,7 +252,7 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-6">
             <header className="mb-24 text-center">
               <h3 className="font-space font-black text-xs tracking-[0.4em] text-primary uppercase mb-6">Why WritingCoach?</h3>
-              <h2 className="text-5xl md:text-7xl font-space font-black tracking-tighter uppercase leading-none">Elevate Your <span className="italic text-on-surface-variant/50 font-newsreader lowercase">Intellectual</span> Output.</h2>
+              <h2 className="text-5xl md:text-7xl font-space font-black tracking-tighter uppercase leading-none">Improve your <span className="italic text-on-surface-variant/50 font-newsreader lowercase">English</span> skills.</h2>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
@@ -260,32 +260,32 @@ export default function LandingPage() {
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Target className="text-primary w-6 h-6" />
                 </div>
-                <h4 className="font-space font-bold uppercase tracking-tight text-xl">High-Precision Analysis</h4>
-                <p className="font-newsreader text-on-surface-variant text-lg leading-relaxed">Instant grammar and spelling corrections grounded in standard US English. Every suggestion is scannable and actionable.</p>
+                <h4 className="font-space font-bold uppercase tracking-tight text-xl">Quick Corrections</h4>
+                <p className="font-newsreader text-on-surface-variant text-lg leading-relaxed">Fix your spelling and grammar in seconds. Learn the right way to write in American English.</p>
               </div>
 
               <div className="space-y-6 p-8 rounded-[32px] bg-surface-container border border-outline-variant/5 hover:border-secondary/20 transition-all">
                 <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center">
                   <ShieldCheck className="text-secondary w-6 h-6" />
                 </div>
-                <h4 className="font-space font-bold uppercase tracking-tight text-xl">Register Mastery</h4>
-                <p className="font-newsreader text-on-surface-variant text-lg leading-relaxed">Whether it's formal executive reports or creative street-smart prose, our AI understands and refines your intended tone.</p>
+                <h4 className="font-space font-bold uppercase tracking-tight text-xl">Better Style</h4>
+                <p className="font-newsreader text-on-surface-variant text-lg leading-relaxed">Choose between formal or informal writing. We help you sound natural in every situation.</p>
               </div>
 
               <div className="space-y-6 p-8 rounded-[32px] bg-surface-container border border-outline-variant/5 hover:border-tertiary/20 transition-all">
                 <div className="w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center">
                   <TrendingUp className="text-tertiary w-6 h-6" />
                 </div>
-                <h4 className="font-space font-bold uppercase tracking-tight text-xl">Linear Progression</h4>
-                <p className="font-newsreader text-on-surface-variant text-lg leading-relaxed">Visualize your improvement over time. Our analytics engine tracks your evolution through interactive performance charts.</p>
+                <h4 className="font-space font-bold uppercase tracking-tight text-xl">Track Your Growth</h4>
+                <p className="font-newsreader text-on-surface-variant text-lg leading-relaxed">See how much you improve over time. Our charts show your progress every step of the way.</p>
               </div>
 
               <div className="space-y-6 p-8 rounded-[32px] bg-surface-container border border-outline-variant/5 hover:border-indigo-400/20 transition-all">
                 <div className="w-12 h-12 rounded-xl bg-indigo-400/10 flex items-center justify-center">
                   <Mail className="text-indigo-400 w-6 h-6" />
                 </div>
-                <h4 className="font-space font-bold uppercase tracking-tight text-xl">Weekly Intelligence</h4>
-                <p className="font-newsreader text-on-surface-variant text-lg leading-relaxed">Direct-to-inbox reports every Monday. Identify common mistakes and receive tailored pro-tips to overcome your specific challenges.</p>
+                <h4 className="font-space font-bold uppercase tracking-tight text-xl">Weekly Tips</h4>
+                <p className="font-newsreader text-on-surface-variant text-lg leading-relaxed">Receive a report every Monday. Find out what mistakes you make most and how to fix them.</p>
               </div>
             </div>
           </div>
@@ -296,10 +296,10 @@ export default function LandingPage() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
           
           <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-            <h3 className="font-space font-black text-xs tracking-[0.4em] text-secondary uppercase mb-8">Access Anywhere</h3>
+            <h3 className="font-space font-black text-xs tracking-[0.4em] text-secondary uppercase mb-8">Learn anywhere</h3>
             <h2 className="text-5xl md:text-7xl font-space font-black tracking-tighter uppercase leading-none mb-12">Download the <br/>app now.</h2>
             <p className="text-xl font-newsreader text-on-surface-variant max-w-xl mx-auto mb-16 italic">
-              Take your personal writing coach with you. Available soon for native Android and iOS environments.
+              Take your coach with you. Coming soon for Android and iOS phones.
             </p>
 
             <div className="flex flex-col sm:flex-row justify-center gap-6">
@@ -330,8 +330,8 @@ export default function LandingPage() {
               <span className="font-space font-black uppercase tracking-widest text-xs opacity-50">WritingCoach © 2026</span>
             </div>
             <div className="flex gap-8">
-              <a href="#" className="text-[10px] font-space font-black uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">Terms of Service</a>
-              <a href="#" className="text-[10px] font-space font-black uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">Privacy Protocol</a>
+              <a href="#" className="text-[10px] font-space font-black uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">Terms of Use</a>
+              <a href="#" className="text-[10px] font-space font-black uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">Privacy</a>
               <a href="#" className="text-[10px] font-space font-black uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">System Status</a>
             </div>
           </div>
