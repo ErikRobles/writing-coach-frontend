@@ -19,7 +19,7 @@ import '../App.css';
 const API_BASE_URL = (import.meta as any).env.VITE_API_URL || "http://127.0.0.1:8080";
 
 export default function LandingPage() {
-  const [selectedTier, setSelectedTier] = useState<null | 'free' | 'premium'>(null);
+  const [selectedTier, setSelectedTier] = useState<null | 'free' | 'basic' | 'pro' | 'premium' | 'corporate'>(null);
   const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,8 +31,13 @@ export default function LandingPage() {
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (authMode === 'signup' && selectedTier === 'premium' && !paymentSuccess) {
-      setError('Please complete the mock payment to subscribe to Premium.');
+    if (authMode === 'signup' && (selectedTier !== 'free' && selectedTier !== 'corporate') && !paymentSuccess) {
+      setError('Please complete the mock payment to subscribe.');
+      return;
+    }
+
+    if (selectedTier === 'corporate') {
+      setError('For Corporate plans, please email us at sales@writingcoach.com');
       return;
     }
 
@@ -50,7 +55,7 @@ export default function LandingPage() {
         body = formData;
         headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
       } else {
-        body = JSON.stringify({ email, password });
+        body = JSON.stringify({ email, password, tier: selectedTier || 'free' });
         headers = { 'Content-Type': 'application/json' };
       }
 
@@ -158,28 +163,50 @@ export default function LandingPage() {
               </div>
 
               {authMode === 'signup' && !selectedTier && !token ? (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                  <h3 className="font-space font-black uppercase tracking-widest text-xs text-on-surface-variant mb-4">Select a plan</h3>
-                  <button onClick={() => setSelectedTier('free')} className="w-full text-left p-6 rounded-3xl bg-surface-container border border-outline-variant/10 hover:border-primary/40 transition-all group">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="font-space font-black text-lg text-on-surface group-hover:text-primary transition-colors uppercase tracking-tight">Free Plan</h4>
-                      <span className="text-xs font-black bg-surface-bright px-3 py-1 rounded-full border border-outline-variant/20">$0</span>
+                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 hide-scrollbar animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <h3 className="font-space font-black uppercase tracking-widest text-xs text-on-surface-variant mb-2">Select a plan</h3>
+                  
+                  {/* Free Tier */}
+                  <button onClick={() => setSelectedTier('free')} className="w-full text-left p-4 rounded-2xl bg-surface-container border border-outline-variant/10 hover:border-primary/40 transition-all group">
+                    <div className="flex justify-between items-center mb-1">
+                      <h4 className="font-space font-black text-sm text-on-surface group-hover:text-primary transition-colors uppercase tracking-tight">Free</h4>
+                      <span className="text-[10px] font-black bg-surface-bright px-2 py-0.5 rounded-full border border-outline-variant/20">$0</span>
                     </div>
-                    <ul className="space-y-3 text-sm text-on-surface-variant font-inter opacity-70">
-                      <li className="flex items-center gap-3"><Zap className="w-4 h-4 text-primary" /> Some help every day</li>
-                      <li className="flex items-center gap-3"><MonitorPlay className="w-4 h-4 text-on-surface-variant" /> Includes ads</li>
-                    </ul>
+                    <p className="text-[10px] text-on-surface-variant opacity-70 uppercase tracking-widest mb-2">0 - 50 tokens / mo</p>
                   </button>
-                  <button onClick={() => setSelectedTier('premium')} className="w-full text-left p-6 rounded-3xl bg-surface-container border border-primary/20 hover:border-emerald-400 transition-all group relative overflow-hidden">
-                    <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-primary to-emerald-400"></div>
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="font-space font-black text-lg text-on-surface group-hover:text-emerald-400 transition-colors uppercase tracking-tight">Premium Plan</h4>
-                      <span className="text-xs font-black bg-primary text-background px-3 py-1 rounded-full">$9.99</span>
+
+                  {/* Basic Tier */}
+                  <button onClick={() => setSelectedTier('basic')} className="w-full text-left p-4 rounded-2xl bg-surface-container border border-outline-variant/10 hover:border-primary/40 transition-all group">
+                    <div className="flex justify-between items-center mb-1">
+                      <h4 className="font-space font-black text-sm text-on-surface group-hover:text-primary transition-colors uppercase tracking-tight">Basic</h4>
+                      <span className="text-[10px] font-black bg-surface-bright px-2 py-0.5 rounded-full border border-outline-variant/20">$5</span>
                     </div>
-                    <ul className="space-y-3 text-sm text-on-surface-variant font-inter">
-                      <li className="flex items-center gap-3"><Zap className="w-4 h-4 text-emerald-400" /> Unlimited help</li>
-                      <li className="flex items-center gap-3"><MonitorPlay className="w-4 h-4 text-emerald-400" /> No ads</li>
-                    </ul>
+                    <p className="text-[10px] text-on-surface-variant opacity-70 uppercase tracking-widest mb-2">51 - 300 tokens / mo</p>
+                  </button>
+
+                  {/* Pro Tier */}
+                  <button onClick={() => setSelectedTier('pro')} className="w-full text-left p-4 rounded-2xl bg-surface-container border border-outline-variant/10 hover:border-primary/40 transition-all group">
+                    <div className="flex justify-between items-center mb-1">
+                      <h4 className="font-space font-black text-sm text-on-surface group-hover:text-primary transition-colors uppercase tracking-tight">Pro</h4>
+                      <span className="text-[10px] font-black bg-surface-bright px-2 py-0.5 rounded-full border border-outline-variant/20">$12</span>
+                    </div>
+                    <p className="text-[10px] text-on-surface-variant opacity-70 uppercase tracking-widest mb-2">301 - 1000 tokens / mo</p>
+                  </button>
+
+                  {/* Premium Tier */}
+                  <button onClick={() => setSelectedTier('premium')} className="w-full text-left p-4 rounded-2xl bg-surface-container border border-primary/20 hover:border-emerald-400 transition-all group relative overflow-hidden">
+                    <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-primary to-emerald-400"></div>
+                    <div className="flex justify-between items-center mb-1">
+                      <h4 className="font-space font-black text-sm text-on-surface group-hover:text-emerald-400 transition-colors uppercase tracking-tight">Premium</h4>
+                      <span className="text-[10px] font-black bg-primary text-background px-2 py-0.5 rounded-full">$30</span>
+                    </div>
+                    <p className="text-[10px] text-on-surface-variant opacity-70 uppercase tracking-widest mb-2">1000+ tokens / mo</p>
+                  </button>
+
+                  {/* Corporate */}
+                  <button onClick={() => setSelectedTier('corporate')} className="w-full text-left p-4 rounded-2xl bg-surface-container border border-indigo-400/20 hover:border-indigo-400 transition-all group">
+                    <h4 className="font-space font-black text-sm text-on-surface group-hover:text-indigo-400 transition-colors uppercase tracking-tight mb-1">Corporate</h4>
+                    <p className="text-[10px] text-on-surface-variant opacity-70 uppercase tracking-widest">Contact us for pricing</p>
                   </button>
                 </div>
               ) : token ? (
@@ -196,7 +223,7 @@ export default function LandingPage() {
                 <form onSubmit={handleAuthSubmit} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-space font-black uppercase tracking-widest text-xs text-on-surface-variant">
-                      {authMode === 'login' ? 'Welcome back' : 'Create account'}
+                      {authMode === 'login' ? 'Authentication' : `${selectedTier?.toUpperCase()} REGISTRATION`}
                     </h3>
                     {authMode === 'signup' && (
                       <button type="button" onClick={() => setSelectedTier(null)} className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">
@@ -205,9 +232,9 @@ export default function LandingPage() {
                     )}
                   </div>
 
-                  {authMode === 'signup' && selectedTier === 'premium' && (
+                  {authMode === 'signup' && (selectedTier !== 'free' && selectedTier !== 'corporate') && (
                     <div className="p-6 rounded-3xl bg-surface border border-primary/20 space-y-4">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Mock Payment</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Secure Payment</p>
                       {paymentSuccess ? (
                         <div className="bg-emerald-400/10 text-emerald-400 p-4 rounded-xl flex items-center gap-3 text-xs font-bold border border-emerald-400/20 uppercase tracking-widest">
                           <CheckCircle2 className="w-5 h-5" /> Paid

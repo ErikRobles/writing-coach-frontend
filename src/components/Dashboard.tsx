@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../AuthContext';
-import { Activity, Flame, FileText, Calendar, TrendingUp } from 'lucide-react';
+import { Activity, Flame, FileText, Calendar, TrendingUp, Zap } from 'lucide-react';
 import { 
   LineChart, 
   Line, 
@@ -14,6 +14,14 @@ import {
 import { getPracticeHistory } from '../api';
 
 const API_BASE_URL = (import.meta as any).env.VITE_API_URL || "http://127.0.0.1:8080";
+
+const TIER_LIMITS: Record<string, number> = {
+  "free": 50,
+  "basic": 300,
+  "pro": 1000,
+  "premium": 5000,
+  "corporate": 999999
+};
 
 export default function Dashboard() {
   const { token } = useAuth();
@@ -76,6 +84,11 @@ export default function Dashboard() {
 
   if (!stats) return <div className="p-8 text-on-surface flex items-center justify-center h-full">Loading your stats...</div>;
 
+  const currentTier = stats.stats?.current_tier || 'free';
+  const tokensUsed = stats.stats?.monthly_tokens_used || 0;
+  const tokenLimit = TIER_LIMITS[currentTier] || 50;
+  const usagePercent = Math.min((tokensUsed / tokenLimit) * 100, 100);
+
   return (
     <div className="p-8 md:p-12 w-full max-w-6xl mx-auto space-y-12 pb-32">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -104,6 +117,43 @@ export default function Dashboard() {
         </div>
       </header>
 
+      {/* Subscription & Usage Card */}
+      <section className="bg-surface-container p-8 rounded-[32px] border border-outline-variant/10 shadow-xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+          <Zap className="w-32 h-32 text-primary" />
+        </div>
+        <div className="relative z-10 flex flex-col md:flex-row justify-between gap-8">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1 bg-primary text-on-primary-fixed rounded-lg font-space font-black text-[10px] uppercase tracking-widest">
+                {currentTier} Plan
+              </span>
+              <span className="font-space text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">Monthly Usage</span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-end gap-2">
+                <span className="text-5xl font-newsreader text-on-surface">{tokensUsed}</span>
+                <span className="text-xl font-space text-on-surface-variant mb-1">/ {tokenLimit === 999999 ? 'Unlimited' : tokenLimit} tokens</span>
+              </div>
+              <div className="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                <div 
+                  className={`h-full transition-all duration-1000 ${usagePercent > 90 ? 'bg-red-500' : 'bg-primary'}`} 
+                  style={{ width: `${usagePercent}%` }}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center">
+            <button 
+              onClick={() => navigate('/')}
+              className="px-8 py-4 bg-surface-container-highest text-on-surface font-space font-bold uppercase tracking-widest text-xs rounded-2xl hover:bg-primary hover:text-background transition-all border border-outline-variant/20 shadow-lg"
+            >
+              Upgrade Plan
+            </button>
+          </div>
+        </div>
+      </section>
+
       <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-surface/30 border border-on-surface/5 rounded-3xl p-6 backdrop-blur-md flex flex-col space-y-4">
           <div className="flex items-center space-x-3 text-emerald-400">
@@ -117,7 +167,7 @@ export default function Dashboard() {
         <div className="bg-surface/30 border border-on-surface/5 rounded-3xl p-6 backdrop-blur-md flex flex-col space-y-4">
           <div className="flex items-center space-x-3 text-primary">
             <Activity className="w-6 h-6" />
-            <h3 className="font-space font-bold uppercase tracking-wider text-sm">Suggestions Used</h3>
+            <h3 className="font-space font-bold uppercase tracking-wider text-sm">Help Received</h3>
           </div>
           <p className="text-5xl font-newsreader">{stats.stats?.total_analyzed ?? 0}</p>
           <span className="text-xs text-on-surface-variant">Number of times you asked for help</span>
@@ -147,7 +197,7 @@ export default function Dashboard() {
         <section className="space-y-6">
           <h2 className="text-xl font-space font-bold flex items-center gap-3">
             <TrendingUp className="w-5 h-5 text-tertiary" /> 
-            Linear Improvement Progression
+            Your Progress Chart
           </h2>
           <div className="bg-surface/20 border border-on-surface/5 rounded-3xl p-8 backdrop-blur-md h-[400px]">
             <ResponsiveContainer width="100%" height="100%">

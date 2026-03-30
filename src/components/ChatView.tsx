@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { analyzeText, startPracticeSession } from '../api';
 import type { PracticeResult } from '../api';
-import { AlertCircle, X } from 'lucide-react';
+import { AlertCircle, X, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const MAX_CHARS = 2000;
 
@@ -9,6 +10,8 @@ export default function ChatView() {
   const [inputText, setInputText] = useState('');
   const [isPracticeMode, setIsPracticeMode] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeMessage, setUpgradeMessage] = useState('');
   const [messages, setMessages] = useState<{role: 'scribe' | 'user', content: string, practiceResult?: PracticeResult}[]>([
     {
       role: 'scribe',
@@ -18,6 +21,7 @@ export default function ChatView() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isAnalyzing) {
@@ -36,56 +40,59 @@ export default function ChatView() {
       return;
     }
 
-    const userMessage: { role: 'user' | 'scribe'; content: string } = { role: 'user', content: inputText };
-    setMessages(prev => [...prev, userMessage]);
-    
     const currentInput = inputText;
-    setInputText('');
     setIsAnalyzing(true);
 
     const scribeMsgIndex = messages.length + 1;
-    setMessages(prev => [...prev, { role: 'scribe', content: '' }]);
+    // Don't add user message until we check tokens or start request
+    // Actually, backend does the check.
 
     try {
       if (isPracticeMode) {
         const result = await startPracticeSession(currentInput);
-        setMessages(prev => {
-          const newMsg = [...prev];
-          newMsg[scribeMsgIndex] = {
-            role: 'scribe',
-            content: result.feedback,
-            practiceResult: result
-          };
-          return newMsg;
-        });
+        setMessages(prev => [...prev, { role: 'user', content: currentInput }]);
+        setMessages(prev => [...prev, {
+          role: 'scribe',
+          content: result.feedback,
+          practiceResult: result
+        }]);
+        setInputText('');
       } else {
+        // For analysis, we need to handle errors in the stream generator
+        // But since we want to catch 403 before starting, we might need a separate check or rely on the error catch
+        let hasStarted = false;
         await analyzeText(currentInput, (chunk) => {
+          if (!hasStarted) {
+            setMessages(prev => [...prev, { role: 'user', content: currentInput }]);
+            setMessages(prev => [...prev, { role: 'scribe', content: '' }]);
+            setInputText('');
+            hasStarted = true;
+          }
           setMessages(prev => {
             const newMsg = [...prev];
-            newMsg[scribeMsgIndex] = {
+            const targetIdx = newMsg.length - 1;
+            newMsg[targetIdx] = {
               role: 'scribe',
-              content: (newMsg[scribeMsgIndex]?.content || '') + chunk
+              content: (newMsg[targetIdx]?.content || '') + chunk
             };
             return newMsg;
           });
         });
       }
     } catch (e: any) {
-      setMessages(prev => {
-        const errorString = String(e?.message || e);
-        let fallbackMessage = 'Oops! We had trouble connecting to the server. Please check your connection.';
-        
-        if (errorString.toLowerCase().includes('rate limit') || errorString.includes('429')) {
-          fallbackMessage = "You've run out of tokens for now. Please try again later or upgrade your plan.";
-        }
-
-        const newMsg = [...prev];
-        newMsg[scribeMsgIndex] = {
+      const errorString = String(e?.message || e);
+      if (errorString.includes('limit') || errorString.includes('upgrade') || errorString.includes('403')) {
+        setUpgradeMessage(errorString);
+        setShowUpgradeModal(true);
+      } else {
+        // General error handling
+        setMessages(prev => [...prev, { role: 'user', content: currentInput }]);
+        setMessages(prev => [...prev, {
           role: 'scribe',
-          content: fallbackMessage
-        };
-        return newMsg;
-      });
+          content: 'Oops! We had trouble connecting. Please check your connection.'
+        }]);
+        setInputText('');
+      }
     } finally {
       setIsAnalyzing(false);
     }
@@ -275,20 +282,43 @@ export default function ChatView() {
             <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6 border border-red-500/20">
               <AlertCircle className="text-red-500 w-8 h-8" />
             </div>
-            <h2 className="font-space font-black text-xl text-on-surface uppercase tracking-tight mb-4 text-red-400">Input Capacity Exceeded</h2>
+            <h2 className="font-space font-black text-xl text-on-surface uppercase tracking-tight mb-4 text-red-400">Text too long</h2>
             <p className="font-newsreader text-lg text-on-surface-variant mb-8 leading-relaxed">
-              Your text is currently <span className="text-red-400 font-bold">{inputText.length}</span> characters. To ensure the highest quality feedback, we limit each analysis to <span className="text-primary font-bold">{MAX_CHARS}</span> units.
+              Please use less than <span className="text-primary font-bold">{MAX_CHARS}</span> characters for better help.
+            </p>
+            <button 
+              onClick={() => setShowLimitModal(false)}
+              className="w-full py-4 bg-primary text-background font-space font-black uppercase tracking-widest rounded-2xl hover:bg-emerald-400 transition-all active:scale-95 shadow-lg"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/90 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="bg-surface-container border border-primary/20 rounded-[32px] w-full max-w-md p-8 flex flex-col items-center text-center shadow-[0px_0px_50px_rgba(0,255,200,0.1)]">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 border border-primary/20">
+              <Zap className="text-primary w-8 h-8" />
+            </div>
+            <h2 className="font-space font-black text-xl text-on-surface uppercase tracking-tight mb-4">Limit Reached</h2>
+            <p className="font-newsreader text-lg text-on-surface-variant mb-8 leading-relaxed">
+              {upgradeMessage || "You have used all your tokens for this month. Upgrade your plan to keep writing!"}
             </p>
             <div className="w-full space-y-3">
-              <div className="p-4 bg-surface-container-highest rounded-2xl text-left border border-outline-variant/10">
-                <h4 className="font-space text-[10px] font-black uppercase tracking-widest text-primary mb-1">Coach's Tip</h4>
-                <p className="text-sm text-on-surface-variant italic">"Try breaking your draft into smaller sections. Focusing on 1-2 paragraphs at a time often yields more precise suggestions!"</p>
-              </div>
               <button 
-                onClick={() => setShowLimitModal(false)}
+                onClick={() => navigate('/')}
                 className="w-full py-4 bg-primary text-background font-space font-black uppercase tracking-widest rounded-2xl hover:bg-emerald-400 transition-all active:scale-95 shadow-lg"
               >
-                Acknowledge & Adjust
+                Upgrade Plan
+              </button>
+              <button 
+                onClick={() => setShowUpgradeModal(false)}
+                className="w-full py-4 bg-surface-container-highest text-on-surface-variant font-space font-black uppercase tracking-widest rounded-2xl border border-outline-variant/20 hover:text-on-surface transition-all active:scale-95"
+              >
+                Maybe Later
               </button>
             </div>
           </div>
