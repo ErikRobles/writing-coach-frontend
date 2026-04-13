@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../AuthContext';
 import { ShieldAlert, Users, TrendingUp, X, FileText, Activity, Flame, Calendar } from 'lucide-react';
-
-const API_BASE_URL = (import.meta as any).env.VITE_API_URL || "http://127.0.0.1:8080";
+import { API_BASE_URL } from '../api';
 
 export default function AdminArea() {
   const { token, role } = useAuth();

@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Sidebar from './components/Sidebar';
-import BottomNav from './components/BottomNav';
-import ChatView from './components/ChatView';
-import Login from './components/Login';
-import Dashboard from './components/Dashboard';
-import AdminArea from './components/AdminArea';
-import LandingPage from './components/LandingPage';
 import { AuthProvider, useAuth } from './AuthContext';
 import { PenTool } from 'lucide-react';
+
+const Sidebar = lazy(() => import('./components/Sidebar'));
+const BottomNav = lazy(() => import('./components/BottomNav'));
+const ChatView = lazy(() => import('./components/ChatView'));
+const Login = lazy(() => import('./components/Login'));
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const AdminArea = lazy(() => import('./components/AdminArea'));
+const LandingPage = lazy(() => import('./components/LandingPage'));
+const PaymentSuccess = lazy(() => import('./components/PaymentSuccess'));
 
 function ProtectedRoute({ children, reqRole }: { children: React.ReactNode, reqRole?: string }) {
   const { token, role } = useAuth();
@@ -23,7 +25,9 @@ function MainLayout() {
   
   return (
     <div className="flex h-screen w-full overflow-hidden aztec-pattern bg-background text-on-background font-inter">
-      <Sidebar />
+      <Suspense fallback={<div className="w-64 bg-background"></div>}>
+        <Sidebar />
+      </Suspense>
       
       <main className="flex-1 md:ml-64 relative flex flex-col h-full overflow-hidden">
         {/* Mobile Header - Removed fixed and top-0 to keep it in flex flow */}
@@ -40,19 +44,23 @@ function MainLayout() {
 
         {/* Content View - Removed redundant mt and pt as header is now in-flow */}
         <div className="flex-1 w-full h-full overflow-y-auto pb-[calc(72px+env(safe-area-inset-bottom))] md:pb-0 hide-scrollbar">
-          <Routes>
-            <Route path="/chat" element={<ChatView />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/admin" element={
-              <ProtectedRoute reqRole="admin">
-                <AdminArea />
-              </ProtectedRoute>
-            } />
-            <Route path="*" element={<Navigate to="/chat" replace />} />
-          </Routes>
+          <Suspense fallback={<div className="flex-1 flex items-center justify-center h-full">Loading...</div>}>
+            <Routes>
+              <Route path="/chat" element={<ChatView />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/admin" element={
+                <ProtectedRoute reqRole="admin">
+                  <AdminArea />
+                </ProtectedRoute>
+              } />
+              <Route path="*" element={<Navigate to="/chat" replace />} />
+            </Routes>
+          </Suspense>
         </div>
         
-        <BottomNav />
+        <Suspense fallback={<div className="h-16 bg-background"></div>}>
+          <BottomNav />
+        </Suspense>
       </main>
     </div>
   );
@@ -62,11 +70,14 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="*" element={<MainLayout />} />
-        </Routes>
+        <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="*" element={<MainLayout />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </AuthProvider>
   );

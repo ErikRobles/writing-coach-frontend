@@ -20,9 +20,9 @@ export default function Sidebar() {
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${role === 'admin' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-secondary/20 text-secondary border border-secondary/30'}`}>
               <span className="material-symbols-outlined text-sm">{role === 'admin' ? 'shield' : 'person'}</span>
             </div>
-            <div className="flex flex-col overflow-hidden">
+            <div className="flex flex-col overflow-hidden w-full">
               <span className="font-space text-[10px] font-bold uppercase tracking-widest text-on-surface-variant leading-none mb-1">Signed in as</span>
-              <span className="font-inter text-xs font-semibold text-on-surface truncate max-w-full" title={email || ''}>
+              <span className="font-inter text-[10px] font-semibold text-on-surface break-all" title={email || ''}>
                 {email || 'Guest User'}
               </span>
             </div>

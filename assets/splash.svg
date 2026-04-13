@@ -1,0 +1,30 @@
+<svg width="2732" height="2732" viewBox="0 0 2732 2732" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="2732" height="2732" fill="#0E0E10"/>
+  
+  <!-- Large Aztec Background Pattern -->
+  <path d="M1366 0L2732 1366L1366 2732L0 1366Z" stroke="#ffffff" stroke-opacity="0.03" stroke-width="2"/>
+  <rect x="683" y="683" width="1366" height="1366" stroke="#ffffff" stroke-opacity="0.03" stroke-width="2"/>
+  
+  <!-- Logo Centered -->
+  <g transform="translate(1016, 1016) scale(0.6)">
+    <g filter="url(#glow)">
+      <path d="M680 344L344 680L280 800L344 736L680 344Z" fill="#00FFC8"/>
+      <path d="M720 304C740 284 740 252 720 232C700 212 668 212 648 232L344 536L280 800L488 736L720 304Z" fill="#00FFC8"/>
+    </g>
+  </g>
+
+  <text x="1366" y="1650" text-anchor="middle" fill="#ffffff" fill-opacity="0.8" font-family="Space Grotesk, sans-serif" font-weight="900" font-size="80" letter-spacing="0.2em">WRITING COACH</text>
+  <text x="1366" y="1720" text-anchor="middle" fill="#00FFC8" fill-opacity="0.4" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="24" letter-spacing="0.5em">INITIALIZING ATELIER</text>
+
+  <defs>
+    <filter id="glow" x="0" y="0" width="1000" height="1000" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="40" result="blur"/>
+      <feFlood flood-color="#00FFC8" flood-opacity="0.5" result="color"/>
+      <feComposite in="color" in2="blur" operator="in" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
-import { Activity, Flame, FileText, Calendar, TrendingUp, Zap } from 'lucide-react';
+import { Activity, Flame, FileText, Calendar, TrendingUp, Zap, AlertCircle } from 'lucide-react';
 import { 
   LineChart, 
   Line, 
@@ -11,9 +12,7 @@ import {
   ResponsiveContainer, 
   Legend 
 } from 'recharts';
-import { getPracticeHistory } from '../api';
-
-const API_BASE_URL = (import.meta as any).env.VITE_API_URL || "http://127.0.0.1:8080";
+import { getPracticeHistory, getUserStats, API_BASE_URL } from '../api';
 
 const TIER_LIMITS: Record<string, number> = {
   "free": 50,
@@ -25,32 +24,56 @@ const TIER_LIMITS: Record<string, number> = {
 
 export default function Dashboard() {
   const { token } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [practiceHistory, setPracticeHistory] = useState<any[]>([]);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [emailStatus, setEmailStatus] = useState<{message: string, isError: boolean} | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!token) return;
 
-    fetch(`${API_BASE_URL}/user/me/stats`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(r => r.json())
-      .then(data => setStats(data))
-      .catch(() => setStats(null));
+    const loadData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Fetch main stats
+        const statsData = await getUserStats();
+        if (statsData.error) {
+          setError(statsData.error);
+        } else {
+          setStats(statsData);
+        }
 
-    fetch(`${API_BASE_URL}/user/me/history`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(r => r.json())
-      .then(data => setHistory(Array.isArray(data) ? data : []))
-      .catch(() => setHistory([]));
+        // Fetch general history
+        const historyRes = await fetch(`${API_BASE_URL}/user/me/history`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (historyRes.ok) {
+          const historyData = await historyRes.json();
+          setHistory(Array.isArray(historyData) ? historyData : []);
+        }
 
-    getPracticeHistory()
-      .then(data => setPracticeHistory(Array.isArray(data) ? data : []))
-      .catch(() => setPracticeHistory([]));
+        // Fetch practice history for chart
+        try {
+          const practiceData = await getPracticeHistory();
+          setPracticeHistory(Array.isArray(practiceData) ? practiceData : []);
+        } catch (e) {
+          console.error("Practice history failed to load", e);
+        }
+
+      } catch (err: any) {
+        console.error("Dashboard data fetch error:", err);
+        setError(err.message || "Failed to connect to the server. Please check your connection.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
   }, [token]);
 
   const handleSendTestEmail = async () => {
@@ -82,7 +105,34 @@ export default function Dashboard() {
     style: h.scores?.style ?? 0
   }));
 
-  if (!stats) return <div className="p-8 text-on-surface flex items-center justify-center h-full">Loading your stats...</div>;
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-8 space-y-4">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="font-space text-xs font-black uppercase tracking-widest text-on-surface-variant">Syncing Data Units...</p>
+      </div>
+    );
+  }
+
+  if (error || !stats) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6">
+        <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20">
+          <AlertCircle className="text-red-500 w-10 h-10" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="font-space font-black text-2xl uppercase text-on-surface">Data Link Error</h2>
+          <p className="font-newsreader text-lg text-on-surface-variant max-w-md italic">{error || "Could not retrieve your statistics."}</p>
+        </div>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-8 py-4 bg-surface-container-high text-on-surface font-space font-bold uppercase tracking-widest text-xs rounded-2xl hover:bg-primary hover:text-on-primary-fixed transition-all shadow-xl"
+        >
+          Retry Connection
+        </button>
+      </div>
+    );
+  }
 
   const currentTier = stats.stats?.current_tier || 'free';
   const tokensUsed = stats.stats?.monthly_tokens_used || 0;
@@ -92,9 +142,12 @@ export default function Dashboard() {
   return (
     <div className="p-8 md:p-12 w-full max-w-6xl mx-auto space-y-12 pb-32">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-4">
-          <h1 className="text-4xl font-space font-extrabold tracking-tight">Dashboard for <span className="text-primary">{stats.email}</span></h1>
-          <p className="text-on-surface-variant max-w-lg">
+        <div className="space-y-4 w-full">
+          <h1 className="text-2xl md:text-4xl font-space font-extrabold tracking-tight break-words flex flex-col gap-1">
+            <span>Dashboard for</span>
+            <span className="text-primary break-all">{stats.email}</span>
+          </h1>
+          <p className="text-on-surface-variant max-w-lg text-sm md:text-base">
             Check your writing progress. See how often you write and how many suggestions you've received.
           </p>
         </div>

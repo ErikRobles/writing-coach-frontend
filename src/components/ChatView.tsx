@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { analyzeText, startPracticeSession } from '../api';
+import { analyzeText, startPracticeSession, upgradeTier, createPaypalOrder, capturePaypalOrder, createMPPreference } from '../api';
 import type { PracticeResult } from '../api';
-import { AlertCircle, X, Zap } from 'lucide-react';
+import { AlertCircle, X, Zap, Check, CreditCard, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 const MAX_CHARS = 2000;
+const PAYPAL_CLIENT_ID = (import.meta as any).env.VITE_PAYPAL_CLIENT_ID || "test";
 
 export default function ChatView() {
   const [inputText, setInputText] = useState('');
@@ -12,6 +14,11 @@ export default function ChatView() {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeMessage, setUpgradeMessage] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [upgradeSuccess, setUpgradeSuccess] = useState(false);
+  const [selectedUpgradeTier, setSelectedUpgradeTier] = useState<null | 'basic' | 'pro' | 'premium'>(null);
+  const [showPaymentSelection, setShowPaymentSelection] = useState(false);
+  
   const [messages, setMessages] = useState<{role: 'scribe' | 'user', content: string, practiceResult?: PracticeResult}[]>([
     {
       role: 'scribe',
@@ -23,11 +30,28 @@ export default function ChatView() {
   const lastMessageRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  const handleSelectTier = (tier: 'basic' | 'pro' | 'premium') => {
+    setSelectedUpgradeTier(tier);
+    setShowPaymentSelection(true);
+  };
+
+  const handleMPPayment = async () => {
+    if (!selectedUpgradeTier) return;
+    setIsProcessing(true);
+    try {
+      const { init_point } = await createMPPreference(selectedUpgradeTier);
+      window.location.href = init_point;
+    } catch (err: any) {
+      setUpgradeMessage(err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   useEffect(() => {
     if (isAnalyzing) {
       endRef.current?.scrollIntoView({ behavior: 'auto' });
     } else if (messages.length > 1) {
-      // Scroll to the start of the last message when analysis is done
       lastMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [messages, isAnalyzing]);
@@ -43,10 +67,6 @@ export default function ChatView() {
     const currentInput = inputText;
     setIsAnalyzing(true);
 
-    const scribeMsgIndex = messages.length + 1;
-    // Don't add user message until we check tokens or start request
-    // Actually, backend does the check.
-
     try {
       if (isPracticeMode) {
         const result = await startPracticeSession(currentInput);
@@ -58,8 +78,6 @@ export default function ChatView() {
         }]);
         setInputText('');
       } else {
-        // For analysis, we need to handle errors in the stream generator
-        // But since we want to catch 403 before starting, we might need a separate check or rely on the error catch
         let hasStarted = false;
         await analyzeText(currentInput, (chunk) => {
           if (!hasStarted) {
@@ -85,7 +103,6 @@ export default function ChatView() {
         setUpgradeMessage(errorString);
         setShowUpgradeModal(true);
       } else {
-        // General error handling
         setMessages(prev => [...prev, { role: 'user', content: currentInput }]);
         setMessages(prev => [...prev, {
           role: 'scribe',
@@ -119,7 +136,6 @@ export default function ChatView() {
   return (
     <div className="flex-1 flex flex-col relative w-full h-full max-w-4xl mx-auto pt-4 pb-32 px-4 md:px-8">
       
-      {/* Mode Toggle - Changed to sticky to sit below header */}
       <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border border-outline-variant/20 rounded-full p-1 flex gap-1 shadow-2xl transition-all hover:border-primary/30 w-fit mx-auto mb-8">
         <button 
           onClick={() => setIsPracticeMode(false)}
@@ -133,7 +149,6 @@ export default function ChatView() {
         </button>
       </div>
 
-      {/* Messages Area */}
       <div className="flex-1 flex flex-col space-y-12 overflow-y-auto mb-16 scrollbar-hide">
         {messages.map((msg, idx) => (
           msg.role === 'scribe' ? (
@@ -235,11 +250,8 @@ export default function ChatView() {
         <div ref={endRef} />
       </div>
 
-      {/* Input Area */}
       <div className="fixed bottom-0 left-0 w-full z-40 px-4 pb-24 md:pb-8 pt-4 bg-gradient-to-t from-background via-background/95 to-transparent flex justify-center md:pl-64">
         <div className="max-w-4xl w-full mx-auto relative group px-4 md:px-8">
-          
-          {/* Char Counter */}
           <div className={`absolute -top-6 right-8 font-space text-[10px] font-bold tracking-widest transition-colors ${isOverLimit ? 'text-red-400' : charCount > MAX_CHARS * 0.8 ? 'text-orange-400' : 'text-on-surface-variant/40'}`}>
             {charCount} / {MAX_CHARS} UNITS
           </div>
@@ -299,28 +311,131 @@ export default function ChatView() {
       {/* Upgrade Modal */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/90 backdrop-blur-xl animate-in fade-in duration-300">
-          <div className="bg-surface-container border border-primary/20 rounded-[32px] w-full max-w-md p-8 flex flex-col items-center text-center shadow-[0px_0px_50px_rgba(0,255,200,0.1)]">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 border border-primary/20">
-              <Zap className="text-primary w-8 h-8" />
-            </div>
-            <h2 className="font-space font-black text-xl text-on-surface uppercase tracking-tight mb-4">Limit Reached</h2>
-            <p className="font-newsreader text-lg text-on-surface-variant mb-8 leading-relaxed">
-              {upgradeMessage || "You have used all your tokens for this month. Upgrade your plan to keep writing!"}
-            </p>
-            <div className="w-full space-y-3">
-              <button 
-                onClick={() => navigate('/')}
-                className="w-full py-4 bg-primary text-background font-space font-black uppercase tracking-widest rounded-2xl hover:bg-emerald-400 transition-all active:scale-95 shadow-lg"
-              >
-                Upgrade Plan
-              </button>
-              <button 
-                onClick={() => setShowUpgradeModal(false)}
-                className="w-full py-4 bg-surface-container-highest text-on-surface-variant font-space font-black uppercase tracking-widest rounded-2xl border border-outline-variant/20 hover:text-on-surface transition-all active:scale-95"
-              >
-                Maybe Later
-              </button>
-            </div>
+          <div className="bg-surface-container border border-primary/20 rounded-[32px] w-full max-w-2xl p-8 flex flex-col items-center text-center shadow-[0px_0px_50px_rgba(0,255,200,0.1)] relative overflow-hidden">
+            {upgradeSuccess ? (
+              <div className="py-12 flex flex-col items-center animate-in zoom-in duration-500">
+                <div className="w-20 h-20 rounded-full bg-emerald-400/20 flex items-center justify-center mb-6 border border-emerald-400/30">
+                  <Check className="text-emerald-400 w-10 h-10" />
+                </div>
+                <h2 className="font-space font-black text-2xl text-on-surface uppercase mb-2">Upgrade Successful!</h2>
+                <p className="font-newsreader text-lg text-on-surface-variant">Your tokens have been updated. Happy writing!</p>
+              </div>
+            ) : showPaymentSelection && selectedUpgradeTier ? (
+              <div className="w-full animate-in slide-in-from-right-8 duration-500">
+                <button onClick={() => setShowPaymentSelection(false)} className="absolute top-6 left-6 p-2 text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-2 font-space font-black uppercase tracking-widest text-[10px]">
+                  <span className="material-symbols-outlined text-sm">arrow_back</span> Back
+                </button>
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 border border-primary/20 mx-auto">
+                  <CreditCard className="text-primary w-8 h-8" />
+                </div>
+                <h2 className="font-space font-black text-2xl text-on-surface uppercase mb-2">Secure Payment</h2>
+                <p className="text-xs font-space font-bold text-primary uppercase tracking-widest mb-8">{selectedUpgradeTier} PLAN • MXN ${selectedUpgradeTier === 'basic' ? '5.00' : selectedUpgradeTier === 'pro' ? '12.00' : '30.00'}</p>
+                
+                <div className="max-w-xs mx-auto space-y-4">
+                  <PayPalScriptProvider options={{ "client-id": PAYPAL_CLIENT_ID, currency: "MXN" }}>
+                    <PayPalButtons 
+                      style={{ layout: 'vertical', shape: 'rect', label: 'pay' }}
+                      createOrder={() => createPaypalOrder(selectedUpgradeTier)}
+                      onApprove={async (data) => {
+                        const details = await capturePaypalOrder(data.orderID, selectedUpgradeTier);
+                        if (details.status === "COMPLETED") {
+                          setUpgradeSuccess(true);
+                          setTimeout(() => {
+                            setShowUpgradeModal(false);
+                            setUpgradeSuccess(false);
+                            window.location.reload(); // Refresh to update tokens
+                          }, 2000);
+                        }
+                      }}
+                    />
+                  </PayPalScriptProvider>
+
+                  <div className="flex items-center gap-4 py-2">
+                    <div className="h-px flex-1 bg-outline-variant/10"></div>
+                    <span className="text-[10px] font-space font-black text-on-surface-variant uppercase tracking-widest">or</span>
+                    <div className="h-px flex-1 bg-outline-variant/10"></div>
+                  </div>
+
+                  {/* Mercado Pago Integration - Hidden until credentials are ready
+                  <button 
+                    onClick={handleMPPayment}
+                    disabled={isProcessing}
+                    className="w-full py-4 bg-[#009EE3] text-white font-space font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-[#008ED0] transition-all shadow-lg flex items-center justify-center gap-3 disabled:opacity-50"
+                  >
+                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                    Pay with Mercado Pago
+                  </button>
+                  */}
+                </div>
+              </div>
+            ) : (
+              <>
+                <button 
+                  onClick={() => setShowUpgradeModal(false)}
+                  className="absolute top-6 right-6 p-2 text-on-surface-variant hover:text-on-surface transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 border border-primary/20">
+                  <Zap className="text-primary w-8 h-8" />
+                </div>
+                
+                <h2 className="font-space font-black text-2xl text-on-surface uppercase tracking-tight mb-2">Limit Reached</h2>
+                <p className="font-newsreader text-lg text-on-surface-variant mb-8 leading-relaxed max-w-md">
+                  {upgradeMessage || "You have used all your tokens. Choose a plan to continue improving your writing."}
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mb-8">
+                  <div className="p-5 rounded-2xl bg-surface-container-high border border-outline-variant/10 hover:border-primary/30 transition-all flex flex-col text-left group">
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="font-space font-black text-xs uppercase tracking-widest text-on-surface group-hover:text-primary transition-colors">Basic</span>
+                      <span className="font-space font-black text-sm">$5</span>
+                    </div>
+                    <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-4">300 tokens</p>
+                    <button 
+                      onClick={() => handleSelectTier('basic')}
+                      className="mt-auto w-full py-2 bg-surface-container-highest text-on-surface-variant font-space font-bold uppercase tracking-widest text-[10px] rounded-lg hover:bg-primary hover:text-on-primary-fixed transition-all"
+                    >
+                      Choose
+                    </button>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-surface-container-high border border-primary/40 flex flex-col text-left relative overflow-hidden group shadow-xl shadow-primary/5">
+                    <div className="absolute top-0 right-0 px-2 py-0.5 bg-primary text-on-primary-fixed font-space font-black text-[8px] uppercase tracking-widest rounded-bl-lg">Popular</div>
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="font-space font-black text-xs uppercase tracking-widest text-primary">Pro</span>
+                      <span className="font-space font-black text-sm">$12</span>
+                    </div>
+                    <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-4">1000 tokens</p>
+                    <button 
+                      onClick={() => handleSelectTier('pro')}
+                      className="mt-auto w-full py-2 bg-primary text-on-primary-fixed font-space font-bold uppercase tracking-widest text-[10px] rounded-lg hover:bg-emerald-400 transition-all"
+                    >
+                      Choose
+                    </button>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-surface-container-high border border-outline-variant/10 hover:border-primary/30 transition-all flex flex-col text-left group">
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="font-space font-black text-xs uppercase tracking-widest text-on-surface group-hover:text-primary transition-colors">Premium</span>
+                      <span className="font-space font-black text-sm">$30</span>
+                    </div>
+                    <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-4">5000 tokens</p>
+                    <button 
+                      onClick={() => handleSelectTier('premium')}
+                      className="mt-auto w-full py-2 bg-surface-container-highest text-on-surface-variant font-space font-bold uppercase tracking-widest text-[10px] rounded-lg hover:bg-primary hover:text-on-primary-fixed transition-all"
+                    >
+                      Choose
+                    </button>
+                  </div>
+                </div>
+
+                <p className="text-[10px] font-space font-bold text-on-surface-variant/40 uppercase tracking-widest flex items-center gap-2">
+                  <CreditCard className="w-3 h-3" /> Secure Checkout via WritingCoach Payments
+                </p>
+              </>
+            )}
           </div>
         </div>
       )}

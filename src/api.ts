@@ -1,4 +1,4 @@
-const API_BASE_URL = (import.meta as any).env.VITE_API_URL || "http://127.0.0.1:8080";
+export const API_BASE_URL = (import.meta as any).env.VITE_API_URL || "http://localhost:8080";
 
 export interface PracticeResult {
   scores: {
@@ -99,4 +99,84 @@ export async function analyzeText(text: string, onChunk: (chunk: string) => void
     console.error('Error in analyzeText', error);
     throw error;
   }
+}
+
+export async function upgradeTier(tier: string) {
+  const token = localStorage.getItem('token');
+  const url = new URL(`${API_BASE_URL}/user/me/upgrade`);
+  url.searchParams.append('tier', tier);
+  
+  const response = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    }
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.detail || 'Failed to upgrade tier');
+  }
+  return response.json();
+}
+
+export async function getUserStats() {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_BASE_URL}/user/me/stats`, {
+    headers: {
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    }
+  });
+
+  if (!response.ok) throw new Error('Failed to fetch user stats');
+return response.json();
+}
+
+export async function createPaypalOrder(tier: string) {
+  const token = localStorage.getItem('token');
+  const url = new URL(`${API_BASE_URL}/payments/paypal/create-order`);
+  url.searchParams.append('tier', tier);
+  
+  const response = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    }
+  });
+
+  if (!response.ok) throw new Error('Failed to create PayPal order');
+  return response.json();
+}
+
+export async function capturePaypalOrder(orderID: string, tier: string) {
+  const token = localStorage.getItem('token');
+  const url = new URL(`${API_BASE_URL}/payments/paypal/capture-order`);
+  url.searchParams.append('orderID', orderID);
+  url.searchParams.append('tier', tier);
+  
+  const response = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    }
+  });
+
+  if (!response.ok) throw new Error('Failed to capture PayPal order');
+  return response.json();
+}
+
+export async function createMPPreference(tier: string) {
+  const token = localStorage.getItem('token');
+  const url = new URL(`${API_BASE_URL}/payments/mercadopago/create-preference`);
+  url.searchParams.append('tier', tier);
+  
+  const response = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    }
+  });
+
+  if (!response.ok) throw new Error('Failed to create Mercado Pago preference');
+  return response.json();
 }
